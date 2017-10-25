@@ -1,0 +1,40 @@
+#ifndef PAGEPLOTSINGLECURVE_H
+#define PAGEPLOTSINGLECURVE_H
+
+#include <QObject>
+#include <qglobal.h>
+
+#include "FormPlot.h"
+
+class PagePlotSingleCurve : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit PagePlotSingleCurve(QWidget *parent = 0);
+
+    inline QWidget* widget()
+    {
+        return (QWidget*)mPlot;
+    }
+
+signals:
+
+public slots:
+    void on_dataReady(int secsFromUTC, double value);
+
+private slots:
+    void on_update();
+
+private:
+    FormPlot* mPlot;
+    QCPGraph* mCurve;
+    //
+    QVector<double> keyX;
+    QVector<double> valueX;
+
+    //utils
+    bool mDirty;
+    QTimer   mTimer;
+};
+
+#endif // PAGEPLOTSINGLECURVE_H

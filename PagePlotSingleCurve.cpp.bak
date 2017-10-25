@@ -1,0 +1,54 @@
+#include "PagePlotSingleCurve.h"
+
+#include <QVBoxLayout>
+
+#include "DataParser.h"
+
+PagePlotSingleCurve::PagePlotSingleCurve(QWidget *parent) : QWidget(parent)
+{
+    mPlot = new FormPlot;  mPlot->customplot->legend->setVisible(false);
+    QPen penUWBKF;    penUWBKF.setColor(Qt::black);
+
+    mPlot->customplot->yAxis->setLabel("X (m)");
+    mPlot->customplot->xAxis->setLabel("");
+
+    mPlot->customplot->addGraph();
+    mCurve = mPlot->customplot->graph();
+    mCurve->setPen(penUWBKF);
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(mPlot);
+    this->setLayout(layout);
+    layout->setSpacing(0);
+    layout->setMargin(0);
+
+    // configure bottom axis to show date instead of number:
+    QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
+    dateTicker->setDateTimeFormat("HH:mm:ss\nyy-MM-dd");
+    mPlot->customplot->xAxis->setTicker(dateTicker);
+
+    mTimer.setInterval(50);
+    mTimer.setSingleShot(false);
+    connect(&mTimer, SIGNAL(timeout()), this, SLOT(on_update()));
+
+    mDirty = false;
+}
+
+void PagePlotSingleCurve::on_dataReady(int secsFromUTC, double value)
+{
+    mCurve->addData(secsFromUTC, value);
+
+    mDirty = true;
+    if (!mTimer.isActive())
+        mTimer.start();
+}
+
+void PagePlotSingleCurve::on_update()
+{
+    if (mDirty){
+        mPlot->customplot->rescaleAxes(true);    mPlot->customplot->replot();
+    }
+
+    mDirty = false;
+}
+
